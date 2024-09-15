@@ -1,0 +1,4 @@
+github.com/shopspring/decimal v1.4.0 h1:bxl37RwXBklmTi0C79JfXCEBD1cqqHt0bbgBAGFp81k=
+github.com/shopspring/decimal v1.4.0/go.mod h1:gawqmDU56v4yIKSwfBSFip1HdCCXN8/+DMd9qYNcwME=
+github.com/wormhole-foundation/wormhole-explorer/common v0.0.0-20240913210431-f80e1c7a46db h1:PgUVGULBlm9vOI1yGLjjX3NVDkvjhUt0INh25ZOV3dw=
+github.com/wormhole-foundation/wormhole-explorer/common v0.0.0-20240913210431-f80e1c7a46db/go.mod h1:1mc35Raj7rD7Wy7oZeIqOcCUDQ0YDeZNvMjQcmxGFuw=
