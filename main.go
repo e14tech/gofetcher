@@ -21,6 +21,4 @@ func main() {
 	bchPrice = strings.ReplaceAll(strings.ReplaceAll(bchPrice, "{", ""), "}", "")
 
 	fmt.Printf("Current Bitcoin Cash price: $%s\n", bchPrice)
-	//fmt.Printf("The Current Bitcoin Cash price is: $%s", fm)
-	//fmt.Printf("%s", strings.ReplaceAll(bchMarketData.MarketData.CurrentPrice, "}", ""))
 }
