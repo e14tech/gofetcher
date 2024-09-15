@@ -8,7 +8,11 @@ import (
 )
 
 func main() {
-	apiConnect := coingecko.NewCoinGeckoAPI("https://api.coingecko.com", "x_cg_demo_api_key", "CG-gr2qVv94bSy3XJjuv29GqyZy")
+	// var apiKey is located within the apikey.go file under the same directory as main.go.
+	// apikey.go structure is just:
+	// package main
+	// var apiKey string = "YOUR_API_KEY"
+	apiConnect := coingecko.NewCoinGeckoAPI("https://api.coingecko.com", "x_cg_demo_api_key", apiKey)
 
 	bchMarketData, err := apiConnect.GetMarketData("bitcoin-cash")
 

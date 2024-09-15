@@ -1,4 +1,4 @@
-module elem14/gofetcher
+module e14tech/gofetcher
 
 go 1.23.1
 
