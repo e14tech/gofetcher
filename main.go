@@ -2,18 +2,22 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
+	"github.com/spf13/viper"
 	"github.com/wormhole-foundation/wormhole-explorer/common/coingecko"
 )
 
 func main() {
-	// var apiKey is located within the apikey.go file under the same directory as main.go.
-	// apikey.go structure is just:
-	// package main
-	// var apiKey string = "YOUR_API_KEY"
-	apiConnect := coingecko.NewCoinGeckoAPI("https://api.coingecko.com", "x_cg_demo_api_key", apiKey)
+	// Load config file
+	config, err := LoadConfig(".")
+	if err != nil {
+		log.Fatal("Cannot load config:", err)
+	}
+
+	apiConnect := coingecko.NewCoinGeckoAPI("https://api.coingecko.com", "x_cg_demo_api_key", config.apiKey)
 
 	for i := 0; i < 3; i++ {
 		bchMarketData, err := apiConnect.GetMarketData("bitcoin-cash")
@@ -37,4 +41,18 @@ func main() {
 			}
 		}
 	}
+}
+
+func LoadConfig(path string) (config Config, err error) {
+	viper.AddConfigPath(path)
+	viper.SetConfigName("app")
+	viper.SetConfigType("env")
+
+	err = viper.ReadInConfig()
+	if err != nil {
+		return
+	}
+
+	err = viper.Unmarshal(&config)
+	return
 }
