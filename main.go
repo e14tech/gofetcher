@@ -1,46 +1,48 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
-	"strings"
-	"time"
+	"net/http"
+	"os"
 
 	"github.com/spf13/viper"
-	"github.com/wormhole-foundation/wormhole-explorer/common/coingecko"
 )
 
+type CoinGecko struct {
+	BitcoinCash struct {
+		USD float64 `json:"usd"`
+	} `json:"bitcoin-cash"`
+}
+
 func main() {
-	// Load config file
-	config, err := LoadConfig(".")
-	if err != nil {
-		log.Fatal("Cannot load config:", err)
+	url := "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin-cash&vs_currencies=USD"
+	//bchBTC := "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin-cash&vs_currencies=BTC"
+	httpResp, httpErr := http.Get(url)
+	if httpErr != nil {
+		log.Fatal(httpErr)
+	}
+	defer httpResp.Body.Close()
+
+	htmlData, htmlErr := ioutil.ReadAll(httpResp.Body)
+	if htmlErr != nil {
+		fmt.Println(htmlErr)
+		os.Exit(1)
 	}
 
-	apiConnect := coingecko.NewCoinGeckoAPI("https://api.coingecko.com", "x_cg_demo_api_key", config.apiKey)
+	fmt.Println(string(htmlData))
 
-	for i := 0; i < 3; i++ {
-		bchMarketData, err := apiConnect.GetMarketData("bitcoin-cash")
-		if err == nil {
-			bchPrice := fmt.Sprintf("%s", bchMarketData.MarketData.CurrentPrice)
-			bchPrice = strings.ReplaceAll(strings.ReplaceAll(bchPrice, "{", ""), "}", "")
-			fmt.Printf("Current Bitcoin Cash price: $%s\n", bchPrice)
-			break
-		} else {
-			fmt.Printf("%s\n", err)
-			if i == 0 {
-				fmt.Println("Will try again in a minute for two more tries.")
-			}
-			if i == 1 {
-				fmt.Println("Will try again in a minute for one more try.")
-			}
-			time.Sleep(60 * time.Second)
-
-			if i >= 2 {
-				panic(err)
-			}
-		}
+	var coinGecko CoinGecko
+	jsonErr := json.Unmarshal(htmlData, &coinGecko)
+	if jsonErr != nil {
+		fmt.Println(jsonErr)
+		os.Exit(1)
 	}
+
+	fmt.Printf("coinGecko: %v\n", coinGecko)
+	fmt.Printf("parsedJSON: %v\n", coinGecko.BitcoinCash.USD)
 }
 
 func LoadConfig(path string) (config Config, err error) {
