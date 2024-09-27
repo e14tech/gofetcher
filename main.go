@@ -19,48 +19,11 @@ type CoinGecko struct {
 }
 
 func main() {
-	bchUSD := "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin-cash&vs_currencies=USD"
-	bchBTC := "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin-cash&vs_currencies=BTC"
-	httpResp, httpErr := http.Get(bchUSD)
-	if httpErr != nil {
-		log.Fatal(httpErr)
-	}
-	defer httpResp.Body.Close()
-
-	htmlData, htmlErr := ioutil.ReadAll(httpResp.Body)
-	if htmlErr != nil {
-		fmt.Println(htmlErr)
-		os.Exit(1)
-	}
-
-	fmt.Println(string(htmlData))
+	urlLinks := []string{"https://api.coingecko.com/api/v3/simple/price?ids=bitcoin-cash&vs_currencies=USD", "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin-cash&vs_currencies=BTC"}
 
 	var coinGecko CoinGecko
-	jsonErr := json.Unmarshal(htmlData, &coinGecko)
-	if jsonErr != nil {
-		fmt.Println(jsonErr)
-		os.Exit(1)
-	}
 
-	httpResp, httpErr = http.Get(bchBTC)
-	if httpErr != nil {
-		log.Fatal(httpErr)
-	}
-	defer httpResp.Body.Close()
-
-	htmlData, htmlErr = ioutil.ReadAll(httpResp.Body)
-	if htmlErr != nil {
-		fmt.Println(htmlErr)
-		os.Exit(1)
-	}
-
-	fmt.Println(string(htmlData))
-
-	jsonErr = json.Unmarshal(htmlData, &coinGecko)
-	if jsonErr != nil {
-		fmt.Println(jsonErr)
-		os.Exit(1)
-	}
+	GetData(urlLinks, &coinGecko)
 
 	fmt.Printf("coinGecko: %v\n", coinGecko)
 	fmt.Printf("parsedJSON: %v\n", coinGecko.BitcoinCash.USD)
@@ -79,4 +42,26 @@ func LoadConfig(path string) (config Config, err error) {
 
 	err = viper.Unmarshal(&config)
 	return
+}
+
+func GetData(urls []string, coinData *CoinGecko) {
+	for _, u := range urls {
+		httpResp, httpErr := http.Get(u)
+		if httpErr != nil {
+			log.Fatal(httpErr)
+		}
+		defer httpResp.Body.Close()
+
+		htmlData, htmlErr := ioutil.ReadAll(httpResp.Body)
+		if htmlErr != nil {
+			fmt.Println(htmlErr)
+			os.Exit(1)
+		}
+
+		jsonErr := json.Unmarshal(htmlData, &coinData)
+		if jsonErr != nil {
+			fmt.Println(jsonErr)
+			os.Exit(1)
+		}
+	}
 }
