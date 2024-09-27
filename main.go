@@ -50,6 +50,10 @@ func GetData(urls []string, coinData *CoinGecko) {
 		if httpErr != nil {
 			log.Fatal(httpErr)
 		}
+		if httpResp.StatusCode != 200 {
+			log.Println("HTTP error code: ", httpResp.StatusCode)
+			continue
+		}
 		defer httpResp.Body.Close()
 
 		htmlData, htmlErr := ioutil.ReadAll(httpResp.Body)
