@@ -52,6 +52,11 @@ func GetData(urls []string, coinData *CoinGecko) {
 		}
 		if httpResp.StatusCode != 200 {
 			log.Println("HTTP error code: ", httpResp.StatusCode)
+			htmlData, htmlErr := ioutil.ReadAll(httpResp.Body)
+			if htmlErr != nil {
+				log.Println(htmlErr)
+			}
+			log.Println(string(htmlData))
 			continue
 		}
 		defer httpResp.Body.Close()
