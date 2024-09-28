@@ -11,23 +11,25 @@ import (
 	"github.com/spf13/viper"
 )
 
-type CoinGecko struct {
-	BitcoinCash struct {
-		USD float64 `json:"usd"`
-		BTC float64 `json:"btc"`
-	} `json:"bitcoin-cash"`
+type PriceData struct {
+	MarketData struct {
+		CurrentPrice struct {
+			USD float64 `json:"usd"`
+			BTC float64 `json:"btc"`
+			ETH float64 `json:"eth"`
+		} `json:"current_price"`
+	} `json:"market_data"`
 }
 
 func main() {
-	urlLinks := []string{"https://api.coingecko.com/api/v3/simple/price?ids=bitcoin-cash&vs_currencies=USD", "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin-cash&vs_currencies=BTC"}
+	urlLinks := []string{"https://api.coingecko.com/api/v3/coins/bitcoin-cash"}
+	var priceData PriceData
 
-	var coinGecko CoinGecko
+	GetData(urlLinks, &priceData)
 
-	GetData(urlLinks, &coinGecko)
-
-	fmt.Printf("coinGecko: %v\n", coinGecko)
-	fmt.Printf("parsedJSON: %v\n", coinGecko.BitcoinCash.USD)
-	fmt.Printf("parsedJSON: %v\n", coinGecko.BitcoinCash.BTC)
+	fmt.Printf("Bitcoin Cash price in USD: $%.2f\n", priceData.MarketData.CurrentPrice.USD)
+	fmt.Printf("Bitcoin Cash price in BTC: ₿%f\n", priceData.MarketData.CurrentPrice.BTC)
+	fmt.Printf("Bitcoin Cash price in ETH: %f ether\n", priceData.MarketData.CurrentPrice.ETH)
 }
 
 func LoadConfig(path string) (config Config, err error) {
@@ -44,7 +46,7 @@ func LoadConfig(path string) (config Config, err error) {
 	return
 }
 
-func GetData(urls []string, coinData *CoinGecko) {
+func GetData(urls []string, coinData *PriceData) {
 	for _, u := range urls {
 		httpResp, httpErr := http.Get(u)
 		if httpErr != nil {
