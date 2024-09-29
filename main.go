@@ -7,8 +7,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-
-	"github.com/spf13/viper"
 )
 
 type PriceData struct {
@@ -29,21 +27,7 @@ func main() {
 
 	fmt.Printf("Bitcoin Cash price in USD: $%.2f\n", priceData.MarketData.CurrentPrice.USD)
 	fmt.Printf("Bitcoin Cash price in BTC: ₿%f\n", priceData.MarketData.CurrentPrice.BTC)
-	fmt.Printf("Bitcoin Cash price in ETH: %f ether\n", priceData.MarketData.CurrentPrice.ETH)
-}
-
-func LoadConfig(path string) (config Config, err error) {
-	viper.AddConfigPath(path)
-	viper.SetConfigName("app")
-	viper.SetConfigType("env")
-
-	err = viper.ReadInConfig()
-	if err != nil {
-		return
-	}
-
-	err = viper.Unmarshal(&config)
-	return
+	fmt.Printf("Bitcoin Cash price in ETH: %f Ether\n", priceData.MarketData.CurrentPrice.ETH)
 }
 
 func GetData(urls []string, coinData *PriceData) {
