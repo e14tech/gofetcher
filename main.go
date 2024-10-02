@@ -2,11 +2,12 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
+	"time"
 )
 
 type PriceData struct {
@@ -20,43 +21,53 @@ type PriceData struct {
 }
 
 func main() {
-	urlLinks := []string{"https://api.coingecko.com/api/v3/coins/bitcoin-cash"}
+	urlLink := "https://api.coingecko.com/api/v3/coins/bitcoin-cash"
 	var priceData PriceData
 
-	GetData(urlLinks, &priceData)
+	GetData(urlLink, &priceData)
 
 	fmt.Printf("Bitcoin Cash price in USD: $%.2f\n", priceData.MarketData.CurrentPrice.USD)
 	fmt.Printf("Bitcoin Cash price in BTC: ₿%f\n", priceData.MarketData.CurrentPrice.BTC)
 	fmt.Printf("Bitcoin Cash price in ETH: %f Ether\n", priceData.MarketData.CurrentPrice.ETH)
 }
 
-func GetData(urls []string, coinData *PriceData) {
-	for _, u := range urls {
-		httpResp, httpErr := http.Get(u)
+func GetData(url string, coinData *PriceData) {
+	for i := 1; i < 3; i++ {
+		httpResp, httpErr := http.Get(url)
 		if httpErr != nil {
-			log.Fatal(httpErr)
+			PrintRetry(i, httpErr)
+			continue
 		}
 		if httpResp.StatusCode != 200 {
 			log.Println("HTTP error code: ", httpResp.StatusCode)
 			htmlData, htmlErr := ioutil.ReadAll(httpResp.Body)
 			if htmlErr != nil {
-				log.Println(htmlErr)
+				PrintRetry(i, htmlErr)
 			}
-			log.Println(string(htmlData))
+			htmlErr = errors.New(string(htmlData))
+			PrintRetry(i, htmlErr)
 			continue
 		}
 		defer httpResp.Body.Close()
 
 		htmlData, htmlErr := ioutil.ReadAll(httpResp.Body)
 		if htmlErr != nil {
-			fmt.Println(htmlErr)
-			os.Exit(1)
+			PrintRetry(i, htmlErr)
 		}
 
 		jsonErr := json.Unmarshal(htmlData, &coinData)
 		if jsonErr != nil {
-			fmt.Println(jsonErr)
-			os.Exit(1)
+			PrintRetry(i, jsonErr)
 		}
 	}
+}
+
+func PrintRetry(tries int, err error) {
+	if tries == 1 {
+		log.Println(err)
+		fmt.Printf("Will try again in one minute.\n")
+	} else {
+		log.Fatal("No more tries. ", err)
+	}
+	time.Sleep(60 * time.Second)
 }
