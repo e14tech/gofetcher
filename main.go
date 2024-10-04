@@ -39,8 +39,7 @@ func main() {
 
 		fmt.Printf("Bitcoin Cash price in USD: $%.2f\n", priceData.MarketData.CurrentPrice.USD)
 		fmt.Printf("Bitcoin Cash price in BTC: ₿%f\n", priceData.MarketData.CurrentPrice.BTC)
-		fmt.Printf("Bitcoin Cash price in ETH: %f Ether\n", priceData.MarketData.CurrentPrice.ETH)
-		fmt.Println()
+		fmt.Printf("Bitcoin Cash price in ETH: %f Ether\n\n", priceData.MarketData.CurrentPrice.ETH)
 
 		time.Sleep(300 * time.Second)
 	}
