@@ -29,7 +29,7 @@ func main() {
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		<-c
-		SigInt()
+		CatchSig()
 		os.Exit(1)
 	}()
 	var priceData PriceData
@@ -46,7 +46,7 @@ func main() {
 	}
 }
 
-func SigInt() {
+func CatchSig() {
 	fmt.Println("Quitting.")
 }
 
