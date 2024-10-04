@@ -13,6 +13,12 @@ import (
 	"time"
 )
 
+const (
+	maxRetries    = 2
+	retryDelay    = 60 * time.Second
+	fetchInterval = 300 * time.Second
+)
+
 type PriceData struct {
 	MarketData struct {
 		CurrentPrice struct {
@@ -24,6 +30,7 @@ type PriceData struct {
 }
 
 func main() {
+	var priceData PriceData
 	urlLink := "https://api.coingecko.com/api/v3/coins/bitcoin-cash"
 	c := make(chan os.Signal, 2)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
@@ -32,8 +39,6 @@ func main() {
 		CatchSig()
 		os.Exit(1)
 	}()
-	var priceData PriceData
-
 	for {
 		GetData(urlLink, &priceData)
 
@@ -41,7 +46,7 @@ func main() {
 		fmt.Printf("Bitcoin Cash price in BTC: ₿%f\n", priceData.MarketData.CurrentPrice.BTC)
 		fmt.Printf("Bitcoin Cash price in ETH: %f Ether\n\n", priceData.MarketData.CurrentPrice.ETH)
 
-		time.Sleep(300 * time.Second)
+		time.Sleep(fetchInterval)
 	}
 }
 
@@ -50,7 +55,7 @@ func CatchSig() {
 }
 
 func GetData(url string, coinData *PriceData) {
-	for i := 1; i < 3; i++ {
+	for i := 0; i < maxRetries; i++ {
 		httpResp, httpErr := http.Get(url)
 		if httpErr != nil {
 			PrintRetry(i, httpErr)
@@ -81,11 +86,11 @@ func GetData(url string, coinData *PriceData) {
 }
 
 func PrintRetry(tries int, err error) {
-	if tries == 1 {
+	if tries == 0 {
 		log.Println(err)
 		fmt.Printf("Will try again in one minute.\n")
 	} else {
 		log.Fatal("No more tries. ", err)
 	}
-	time.Sleep(60 * time.Second)
+	time.Sleep(retryDelay)
 }
