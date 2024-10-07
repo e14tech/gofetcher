@@ -33,14 +33,17 @@ func main() {
 	var priceData PriceData
 	urlLink := "https://api.coingecko.com/api/v3/coins/bitcoin-cash"
 	c := make(chan os.Signal, 2)
+
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+
 	go func() {
 		<-c
 		CatchSig()
 		os.Exit(1)
 	}()
+
 	for {
-		GetData(urlLink, &priceData)
+		UnmarshalJSON(GetData(urlLink), &priceData)
 
 		fmt.Printf("Bitcoin Cash price in USD: $%.2f\n", priceData.MarketData.CurrentPrice.USD)
 		fmt.Printf("Bitcoin Cash price in BTC: ₿%f\n", priceData.MarketData.CurrentPrice.BTC)
@@ -54,13 +57,18 @@ func CatchSig() {
 	fmt.Println("Quitting.")
 }
 
-func GetData(url string, coinData *PriceData) {
+// Grabs HTML data from CoinGecko.
+// Also retries in case of an error.
+func GetData(url string) []byte {
+	var htmlData []byte
 	for i := 0; i < maxRetries; i++ {
 		httpResp, httpErr := http.Get(url)
+
 		if httpErr != nil {
 			PrintRetry(i, httpErr)
 			continue
 		}
+
 		if httpResp.StatusCode != 200 {
 			log.Println("HTTP error code: ", httpResp.StatusCode)
 			htmlData, htmlErr := ioutil.ReadAll(httpResp.Body)
@@ -77,11 +85,17 @@ func GetData(url string, coinData *PriceData) {
 		if htmlErr != nil {
 			PrintRetry(i, htmlErr)
 		}
+		return htmlData
+	}
+	return htmlData
+}
 
-		jsonErr := json.Unmarshal(htmlData, &coinData)
-		if jsonErr != nil {
-			PrintRetry(i, jsonErr)
-		}
+// Unmarshals the JSON data from the HTML data and puts in into the PriceData struct.
+// If we've gotten this far with a 200 Status code AND the JSON unmarshaling errors out, something else is wrong.
+func UnmarshalJSON(htmlData []byte, coinData *PriceData) {
+	jsonErr := json.Unmarshal(htmlData, &coinData)
+	if jsonErr != nil {
+		log.Fatal(jsonErr)
 	}
 }
 
