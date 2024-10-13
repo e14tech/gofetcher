@@ -42,8 +42,10 @@ func main() {
 		os.Exit(1)
 	}()
 
+	client := &http.Client{}
+
 	for {
-		UnmarshalJSON(GetData(urlLink), &priceData)
+		UnmarshalJSON(GetData(urlLink, client), &priceData)
 
 		fmt.Printf("Bitcoin Cash price in USD: $%.2f\n", priceData.MarketData.CurrentPrice.USD)
 		fmt.Printf("Bitcoin Cash price in BTC: ₿%f\n", priceData.MarketData.CurrentPrice.BTC)
@@ -59,10 +61,17 @@ func CatchSig() {
 
 // Grabs HTML data from CoinGecko.
 // Also retries in case of an error.
-func GetData(url string) []byte {
+func GetData(url string, client *http.Client) []byte {
 	var htmlData []byte
 	for i := 0; i < maxRetries; i++ {
-		httpResp, httpErr := http.Get(url)
+		req, reqErr := http.NewRequest("GET", url, nil)
+		if reqErr != nil {
+			PrintRetry(i, reqErr)
+			continue
+		}
+		req.Header.Set("User-Agent", "gofetcher")
+
+		httpResp, httpErr := client.Do(req)
 
 		if httpErr != nil {
 			PrintRetry(i, httpErr)
